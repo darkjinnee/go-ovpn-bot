@@ -50,7 +50,7 @@ setup:
 # Копирование примера конфигурации
 config:
 	@echo "Creating .env file from example..."
-	@cp env.example .env
+	@cp .env.example .env
 	@echo "Please edit .env file with your configuration"
 
 # Полная настройка
