@@ -119,19 +119,12 @@ func (b *Bot) handleStartCommand(message *tgbotapi.Message, user *database.User)
 • /add - Создать новую VPN конфигурацию
 • /remove - Удалить существующую конфигурацию
 
-*Ваши конфигурации:* ` + fmt.Sprintf("%d/%d", len(user.Configs), b.config.MaxConfigs)
+*Ваши конфигурации:* ` + fmt.Sprintf("%d", len(user.Configs))
 
 	b.sendMessage(message.Chat.ID, text)
 }
 
 func (b *Bot) handleAddCommand(message *tgbotapi.Message, user *database.User) {
-	// Проверяем лимит конфигураций
-	if len(user.Configs) >= b.config.MaxConfigs {
-		text := fmt.Sprintf("❌ Достигнут лимит конфигураций (%d). Удалите существующие конфигурации перед созданием новых.", b.config.MaxConfigs)
-		b.sendMessage(message.Chat.ID, text)
-		return
-	}
-
 	// Создаем клиента
 	b.sendMessage(message.Chat.ID, "⏳ Создаю новую VPN конфигурацию...")
 
