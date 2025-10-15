@@ -2,15 +2,18 @@
 
 # Переменные
 BINARY_NAME=ovpn-bot
+ADMIN_BINARY_NAME=ovpn-admin
 BUILD_DIR=bin
 MAIN_PATH=cmd/bot/main.go
+ADMIN_PATH=cmd/admin/main.go
 
 # Сборка приложения
 build:
 	@echo "Building $(BINARY_NAME)..."
 	@mkdir -p $(BUILD_DIR)
 	@go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PATH)
-	@echo "Build completed: $(BUILD_DIR)/$(BINARY_NAME)"
+	@go build -o $(BUILD_DIR)/$(ADMIN_BINARY_NAME) $(ADMIN_PATH)
+	@echo "Build completed: $(BUILD_DIR)/$(BINARY_NAME) and $(BUILD_DIR)/$(ADMIN_BINARY_NAME)"
 
 # Запуск приложения
 run: build
@@ -58,16 +61,28 @@ init: setup config deps
 	@echo "Initialization completed"
 	@echo "Please edit .env file with your bot token and run 'make run'"
 
+# Генерация кодов активации
+generate-codes:
+	@echo "Generating activation codes..."
+	@./$(BUILD_DIR)/$(ADMIN_BINARY_NAME) -limit=1 -count=5
+
+# Генерация кодов с параметрами
+generate-codes-custom:
+	@echo "Usage: make generate-codes-custom LIMIT=5 COUNT=10"
+	@./$(BUILD_DIR)/$(ADMIN_BINARY_NAME) -limit=$(LIMIT) -count=$(COUNT)
+
 # Помощь
 help:
 	@echo "Available commands:"
-	@echo "  build    - Build the application"
-	@echo "  run      - Build and run the application"
-	@echo "  deps     - Install dependencies"
-	@echo "  clean    - Clean build artifacts"
-	@echo "  test     - Run tests"
-	@echo "  install  - Install to system"
-	@echo "  setup    - Create necessary directories"
-	@echo "  config   - Create .env from example"
-	@echo "  init     - Full initialization"
-	@echo "  help     - Show this help"
+	@echo "  build                    - Build the application"
+	@echo "  run                      - Build and run the application"
+	@echo "  deps                     - Install dependencies"
+	@echo "  clean                    - Clean build artifacts"
+	@echo "  test                     - Run tests"
+	@echo "  install                  - Install to system"
+	@echo "  setup                    - Create necessary directories"
+	@echo "  config                   - Create .env from example"
+	@echo "  init                     - Full initialization"
+	@echo "  generate-codes           - Generate 5 activation codes with limit 1"
+	@echo "  generate-codes-custom    - Generate codes with custom limit and count"
+	@echo "  help                     - Show this help"

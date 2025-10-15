@@ -3,8 +3,10 @@ package bot
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go-ovpn-bot/internal/config"
@@ -17,6 +19,8 @@ type Bot struct {
 	config      *config.Config
 	db          *database.DB
 	ovpnService *ovpn.Service
+	// Состояние ожидания кода активации для пользователей
+	waitingForCode map[int64]bool
 }
 
 func New(cfg *config.Config, db *database.DB, ovpnService *ovpn.Service) *Bot {
@@ -28,10 +32,11 @@ func New(cfg *config.Config, db *database.DB, ovpnService *ovpn.Service) *Bot {
 	bot.Debug = false
 
 	return &Bot{
-		api:         bot,
-		config:      cfg,
-		db:          db,
-		ovpnService: ovpnService,
+		api:            bot,
+		config:         cfg,
+		db:             db,
+		ovpnService:    ovpnService,
+		waitingForCode: make(map[int64]bool),
 	}
 }
 
@@ -66,6 +71,12 @@ func (b *Bot) handleMessage(message *tgbotapi.Message) {
 		return
 	}
 
+	// Проверяем, ожидает ли пользователь ввод кода активации
+	if b.waitingForCode[user.ID] {
+		b.handleActivationCode(message, user)
+		return
+	}
+
 	// Обрабатываем команды
 	switch {
 	case strings.HasPrefix(message.Text, "/start"):
@@ -74,6 +85,8 @@ func (b *Bot) handleMessage(message *tgbotapi.Message) {
 		b.handleAddCommand(message, user)
 	case strings.HasPrefix(message.Text, "/remove"):
 		b.handleRemoveCommand(message, user)
+	case strings.HasPrefix(message.Text, "/code"):
+		b.handleCodeCommand(message, user)
 	default:
 		b.sendMessage(message.Chat.ID, "❓ Неизвестная команда. Используйте /start для просмотра доступных команд.")
 	}
@@ -118,13 +131,25 @@ func (b *Bot) handleStartCommand(message *tgbotapi.Message, user *database.User)
 *Доступные команды:*
 • /add - Создать новую VPN конфигурацию
 • /remove - Удалить существующую конфигурацию
+• /code - Активировать код для увеличения лимита
 
-*Ваши конфигурации:* ` + fmt.Sprintf("%d", len(user.Configs))
+*Ваши конфигурации:* ` + fmt.Sprintf("%d", len(user.Configs)) + `
+*Ваш лимит:* ` + fmt.Sprintf("%d", user.Limit)
 
 	b.sendMessage(message.Chat.ID, text)
 }
 
 func (b *Bot) handleAddCommand(message *tgbotapi.Message, user *database.User) {
+	// Проверяем лимит пользователя
+	if user.Limit <= len(user.Configs) {
+		b.sendMessage(message.Chat.ID, 
+			"❌ У вас исчерпан лимит конфигураций!\n\n"+
+			"*Текущий лимит:* "+fmt.Sprintf("%d", user.Limit)+"\n"+
+			"*Использовано:* "+fmt.Sprintf("%d", len(user.Configs))+"\n\n"+
+			"Используйте команду /code для активации кода и увеличения лимита.")
+		return
+	}
+
 	// Создаем клиента
 	b.sendMessage(message.Chat.ID, "⏳ Создаю новую VPN конфигурацию...")
 
@@ -266,4 +291,105 @@ func (b *Bot) answerCallbackQuery(callbackQueryID, text string) {
 	if _, err := b.api.Request(callback); err != nil {
 		log.Printf("Failed to answer callback query: %v", err)
 	}
+}
+
+// handleCodeCommand обрабатывает команду /code
+func (b *Bot) handleCodeCommand(message *tgbotapi.Message, user *database.User) {
+	b.waitingForCode[user.ID] = true
+	b.sendMessage(message.Chat.ID, 
+		"🔑 *Активация кода*\n\n"+
+		"Введите код активации для увеличения лимита конфигураций.\n\n"+
+		"Код должен состоять из 10 символов (латинские буквы и цифры).")
+}
+
+// handleActivationCode обрабатывает введенный код активации
+func (b *Bot) handleActivationCode(message *tgbotapi.Message, user *database.User) {
+	code := strings.TrimSpace(message.Text)
+	
+	// Сбрасываем состояние ожидания
+	delete(b.waitingForCode, user.ID)
+	
+	// Проверяем формат кода
+	if len(code) != 10 {
+		b.sendMessage(message.Chat.ID, 
+			"❌ Неверный формат кода!\n\n"+
+			"Код должен содержать ровно 10 символов (латинские буквы и цифры).")
+		return
+	}
+	
+	// Проверяем что код содержит только латинские буквы и цифры
+	if !isValidCode(code) {
+		b.sendMessage(message.Chat.ID, 
+			"❌ Неверный формат кода!\n\n"+
+			"Код должен содержать только латинские буквы (a-z, A-Z) и цифры (0-9).")
+		return
+	}
+	
+	// Получаем код из базы данных
+	activationCode, err := b.db.GetActivationCodeByCode(code)
+	if err != nil {
+		b.sendMessage(message.Chat.ID, 
+			"❌ Код не найден или неверный!\n\n"+
+			"Проверьте правильность введенного кода.")
+		return
+	}
+	
+	// Проверяем статус кода
+	if activationCode.Status != "active" {
+		b.sendMessage(message.Chat.ID, 
+			"❌ Код уже использован!\n\n"+
+			"Этот код активации уже был использован ранее.")
+		return
+	}
+	
+	// Обновляем лимит пользователя
+	newLimit := user.Limit + activationCode.Limit
+	if err := b.db.UpdateUserLimit(user.ID, newLimit); err != nil {
+		log.Printf("Failed to update user limit: %v", err)
+		b.sendMessage(message.Chat.ID, "❌ Ошибка при обновлении лимита. Попробуйте позже.")
+		return
+	}
+	
+	// Помечаем код как использованный
+	if err := b.db.UseActivationCode(activationCode.ID); err != nil {
+		log.Printf("Failed to mark code as used: %v", err)
+		// Не прерываем выполнение, так как лимит уже обновлен
+	}
+	
+	// Обновляем лимит в объекте пользователя
+	user.Limit = newLimit
+	
+	b.sendMessage(message.Chat.ID, 
+		fmt.Sprintf("✅ *Код успешно активирован!*\n\n"+
+		"*Добавлено к лимиту:* %d\n"+
+		"*Новый лимит:* %d\n"+
+		"*Использовано:* %d\n\n"+
+		"Теперь вы можете создавать VPN конфигурации!",
+		activationCode.Limit, newLimit, len(user.Configs)))
+}
+
+// isValidCode проверяет что код содержит только латинские буквы и цифры
+func isValidCode(code string) bool {
+	for _, char := range code {
+		if !((char >= 'a' && char <= 'z') || 
+			 (char >= 'A' && char <= 'Z') || 
+			 (char >= '0' && char <= '9')) {
+			return false
+		}
+	}
+	return true
+}
+
+// generateActivationCode генерирует случайный код активации
+func generateActivationCode() string {
+	rand.Seed(time.Now().UnixNano())
+	
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	code := make([]byte, 10)
+	
+	for i := range code {
+		code[i] = charset[rand.Intn(len(charset))]
+	}
+	
+	return string(code)
 }
