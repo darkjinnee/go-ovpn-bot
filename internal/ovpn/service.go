@@ -28,9 +28,9 @@ func New(scriptsPath, configsPath, configPrefix string) *Service {
 func (s *Service) GenerateRandomName() string {
 	rand.Seed(time.Now().UnixNano())
 	
-	// Генерируем 10 случайных символов в верхнем регистре
+	// Генерируем 8 случайных символов в верхнем регистре
 	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	randomPart := make([]byte, 10)
+	randomPart := make([]byte, 8)
 	
 	for i := range randomPart {
 		randomPart[i] = charset[rand.Intn(len(charset))]

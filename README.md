@@ -91,9 +91,9 @@ go-ovpn-bot/
 ### Формат имен конфигураций
 
 Имена конфигурационных файлов генерируются по следующему шаблону:
-- **Формат**: `{CONFIG_PREFIX}{10_случайных_символов}`
+- **Формат**: `{CONFIG_PREFIX}{8_случайных_символов}`
 - **Символы**: латинские буквы (A-Z) и цифры (0-9) в верхнем регистре
-- **Примеры**: `VPN3A0XYTSHUP`, `TEST75H92RPYUS`, `DEMO6F00GS2CSM`
+- **Примеры**: `VPN3A0XYTS`, `TEST75H92R`, `DEMO6F00G`
 
 Префикс настраивается через переменную окружения `CONFIG_PREFIX` (по умолчанию: `VPN`).
 
@@ -203,10 +203,10 @@ id | telegram_id | username | limit_count | created_at
 
 **Таблица configs:**
 ```
-id | user_id | name           | file_path                    | created_at
----|---------|----------------|------------------------------|-------------------
-1  | 1       | VPN3A0XYTSHUP  | ./.ovpn/VPN3A0XYTSHUP.ovpn   | 2024-01-15 10:35:00
-2  | 1       | VPNJ0XOJ51AWJ  | ./.ovpn/VPNJ0XOJ51AWJ.ovpn   | 2024-01-15 12:20:00
+id | user_id | name        | file_path                 | created_at
+---|---------|-------------|---------------------------|-------------------
+1  | 1       | VPN3A0XYTS  | ./.ovpn/VPN3A0XYTS.ovpn   | 2024-01-15 10:35:00
+2  | 1       | VPNJ0XOJ51  | ./.ovpn/VPNJ0XOJ51.ovpn   | 2024-01-15 12:20:00
 ```
 
 **Таблица activation_codes:**
