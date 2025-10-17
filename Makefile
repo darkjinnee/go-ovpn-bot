@@ -20,6 +20,11 @@ run: build
 	@echo "Running $(BINARY_NAME)..."
 	@./$(BUILD_DIR)/$(BINARY_NAME)
 
+# Запуск в режиме отладки
+debug: build
+	@echo "Running $(BINARY_NAME) in DEBUG mode..."
+	@DEBUG=true ./$(BUILD_DIR)/$(BINARY_NAME)
+
 # Установка зависимостей
 deps:
 	@echo "Installing dependencies..."
@@ -76,6 +81,7 @@ help:
 	@echo "Available commands:"
 	@echo "  build                    - Build the application"
 	@echo "  run                      - Build and run the application"
+	@echo "  debug                    - Build and run in DEBUG mode"
 	@echo "  deps                     - Install dependencies"
 	@echo "  clean                    - Clean build artifacts"
 	@echo "  test                     - Run tests"

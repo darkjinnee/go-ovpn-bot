@@ -2,6 +2,8 @@ package config
 
 import (
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -12,6 +14,7 @@ type Config struct {
 	ScriptsPath   string
 	ConfigsPath   string
 	ConfigPrefix  string
+	Debug         bool
 }
 
 func Load() (*Config, error) {
@@ -26,6 +29,7 @@ func Load() (*Config, error) {
 		ScriptsPath:  getEnv("SCRIPTS_PATH", "./scripts"),
 		ConfigsPath:  getEnv("CONFIGS_PATH", "./.ovpn"),
 		ConfigPrefix: getEnv("CONFIG_PREFIX", "VPN"),
+		Debug:        getBoolEnv("DEBUG", false),
 	}
 
 	if cfg.BotToken == "" {
@@ -38,6 +42,15 @@ func Load() (*Config, error) {
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+func getBoolEnv(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		if parsed, err := strconv.ParseBool(strings.ToLower(value)); err == nil {
+			return parsed
+		}
 	}
 	return defaultValue
 }

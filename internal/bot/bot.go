@@ -29,7 +29,7 @@ func New(cfg *config.Config, db *database.DB, ovpnService *ovpn.Service) *Bot {
 		log.Fatalf("Failed to create bot: %v", err)
 	}
 
-	bot.Debug = false
+	bot.Debug = cfg.Debug
 
 	return &Bot{
 		api:            bot,
@@ -46,9 +46,17 @@ func (b *Bot) Start() error {
 
 	updates := b.api.GetUpdatesChan(u)
 
-	log.Println("Bot started successfully")
+	if b.config.Debug {
+		log.Println("Bot started successfully in DEBUG mode")
+	} else {
+		log.Println("Bot started successfully")
+	}
 
 	for update := range updates {
+		if b.config.Debug {
+			log.Printf("Received update: %+v", update)
+		}
+		
 		if update.Message != nil {
 			b.handleMessage(update.Message)
 		} else if update.CallbackQuery != nil {
@@ -60,6 +68,11 @@ func (b *Bot) Start() error {
 }
 
 func (b *Bot) handleMessage(message *tgbotapi.Message) {
+	if b.config.Debug {
+		log.Printf("Handling message from user %d (%s): %s", 
+			message.From.ID, message.From.UserName, message.Text)
+	}
+	
 	// Получаем или создаем пользователя
 	user, err := b.db.GetOrCreateUser(
 		int64(message.From.ID),
