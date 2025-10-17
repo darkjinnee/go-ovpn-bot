@@ -24,7 +24,7 @@ func main() {
 	defer db.Close()
 
 	// Инициализируем OpenVPN сервис
-	ovpnService := ovpn.New(cfg.ScriptsPath, cfg.ConfigsPath)
+	ovpnService := ovpn.New(cfg.ScriptsPath, cfg.ConfigsPath, cfg.ConfigPrefix)
 
 	// Создаем и запускаем бота
 	botInstance := bot.New(cfg, db, ovpnService)

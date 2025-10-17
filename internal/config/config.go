@@ -11,6 +11,7 @@ type Config struct {
 	DatabasePath  string
 	ScriptsPath   string
 	ConfigsPath   string
+	ConfigPrefix  string
 }
 
 func Load() (*Config, error) {
@@ -24,6 +25,7 @@ func Load() (*Config, error) {
 		DatabasePath: getEnv("DATABASE_PATH", "./data/bot.db"),
 		ScriptsPath:  getEnv("SCRIPTS_PATH", "./scripts"),
 		ConfigsPath:  getEnv("CONFIGS_PATH", "./.ovpn"),
+		ConfigPrefix: getEnv("CONFIG_PREFIX", "VPN"),
 	}
 
 	if cfg.BotToken == "" {

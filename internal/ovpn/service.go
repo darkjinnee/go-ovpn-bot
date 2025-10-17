@@ -11,14 +11,16 @@ import (
 )
 
 type Service struct {
-	scriptsPath string
-	configsPath string
+	scriptsPath  string
+	configsPath  string
+	configPrefix string
 }
 
-func New(scriptsPath, configsPath string) *Service {
+func New(scriptsPath, configsPath, configPrefix string) *Service {
 	return &Service{
-		scriptsPath: scriptsPath,
-		configsPath: configsPath,
+		scriptsPath:  scriptsPath,
+		configsPath:  configsPath,
+		configPrefix: configPrefix,
 	}
 }
 
@@ -26,21 +28,15 @@ func New(scriptsPath, configsPath string) *Service {
 func (s *Service) GenerateRandomName() string {
 	rand.Seed(time.Now().UnixNano())
 	
-	adjectives := []string{
-		"fast", "secure", "quick", "safe", "reliable", "stable", "strong", "smart",
-		"bright", "clear", "sharp", "bold", "cool", "fresh", "new", "prime",
+	// Генерируем 10 случайных символов в верхнем регистре
+	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	randomPart := make([]byte, 10)
+	
+	for i := range randomPart {
+		randomPart[i] = charset[rand.Intn(len(charset))]
 	}
 	
-	nouns := []string{
-		"tiger", "eagle", "wolf", "fox", "bear", "lion", "hawk", "shark",
-		"storm", "wave", "wind", "fire", "ice", "rock", "star", "moon",
-	}
-	
-	adj := adjectives[rand.Intn(len(adjectives))]
-	noun := nouns[rand.Intn(len(nouns))]
-	num := rand.Intn(999) + 1
-	
-	return fmt.Sprintf("%s_%s_%d", adj, noun, num)
+	return s.configPrefix + string(randomPart)
 }
 
 // CreateClient создает нового клиента OpenVPN
