@@ -28,8 +28,8 @@ func New(scriptsPath, configsPath, configPrefix string) *Service {
 func (s *Service) GenerateRandomName() string {
 	rand.Seed(time.Now().UnixNano())
 	
-	// Генерируем 8 случайных символов в верхнем регистре
-	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	// Генерируем 8 случайных символов (латинские буквы и цифры в смешанном регистре)
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	randomPart := make([]byte, 8)
 	
 	for i := range randomPart {
