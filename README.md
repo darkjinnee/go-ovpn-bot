@@ -86,17 +86,17 @@ go-ovpn-bot/
 | `DATABASE_PATH` | Путь к SQLite базе | `./data/bot.db` |
 | `SCRIPTS_PATH` | Путь к скриптам OpenVPN | `./scripts` |
 | `CONFIGS_PATH` | Путь к .ovpn файлам | `./.ovpn` |
-| `CONFIG_PREFIX` | Префикс для имен конфигураций | `VPN` |
+| `CONFIG_PREFIX` | Префикс для имен конфигураций | `` (пустой) |
 | `DEBUG` | Режим отладки (true/false) | `false` |
 
 ### Формат имен конфигураций
 
 Имена конфигурационных файлов генерируются по следующему шаблону:
 - **Формат**: `{CONFIG_PREFIX}{8_случайных_символов}`
-- **Символы**: латинские буквы (A-Z) и цифры (0-9)
-- **Примеры**: `VPNoQugmyIG`, `VPNoDJTpcgh`, `VPNK9EO0fmH`
+- **Символы**: латинские буквы (a-z, A-Z) и цифры (0-9) в смешанном регистре
+- **Примеры**: `MvfasM0o`, `VPNeY5ZjKLp`, `testwANM3Dgl`
 
-Префикс настраивается через переменную окружения `CONFIG_PREFIX` (по умолчанию: `VPN`).
+Префикс настраивается через переменную окружения `CONFIG_PREFIX` (по умолчанию: пустой).
 
 ### Настройка OpenVPN
 
@@ -206,8 +206,8 @@ id | telegram_id | username | limit_count | created_at
 ```
 id | user_id | name        | file_path                 | created_at
 ---|---------|-------------|---------------------------|-------------------
-1  | 1       | VPN3A0XYTS  | ./.ovpn/VPN3A0XYTS.ovpn   | 2024-01-15 10:35:00
-2  | 1       | VPNJ0XOJ51  | ./.ovpn/VPNJ0XOJ51.ovpn   | 2024-01-15 12:20:00
+1  | 1       | MvfasM0o    | ./.ovpn/MvfasM0o.ovpn     | 2024-01-15 10:35:00
+2  | 1       | VPNeY5ZjKLp | ./.ovpn/VPNeY5ZjKLp.ovpn  | 2024-01-15 12:20:00
 ```
 
 **Таблица activation_codes:**

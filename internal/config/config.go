@@ -28,7 +28,7 @@ func Load() (*Config, error) {
 		DatabasePath: getEnv("DATABASE_PATH", "./data/bot.db"),
 		ScriptsPath:  getEnv("SCRIPTS_PATH", "./scripts"),
 		ConfigsPath:  getEnv("CONFIGS_PATH", "./.ovpn"),
-		ConfigPrefix: getEnv("CONFIG_PREFIX", "VPN"),
+		ConfigPrefix: getEnv("CONFIG_PREFIX", ""),
 		Debug:        getBoolEnv("DEBUG", false),
 	}
 
